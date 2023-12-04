@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import socket from './server';
-import InputField from './components/InputField/InputField';
-import MessageContainer from './components/MessageContainer/MessageContainer';
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import RoomListPage from './pages/RoomListPage/RoomListPage';
+import ChatPage from './pages/Chatpage/Chatpage';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [message, setMessage] = useState('');
-  const [messageList, setMessageList] = useState([]);
+  const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
-    socket.on('message', (message) => {
-      setMessageList((prevState) => prevState.concat(message));
+    socket.on('rooms', (res) => {
+      setRooms(res);
     })
     askUserName();
   }, []);
@@ -26,21 +26,14 @@ function App() {
     })
   }
 
-  const sendMessage = (event) => {
-    event.preventDefault();
-    socket.emit('sendMessage', message, (res) => {
-      console.log('sendMessage Res', res);
-    })
-  };
-
   return (
-    <div>
-      <div className="App">
-        <MessageContainer messageList={messageList} user={user} />
-        <InputField message={message} setMessage={setMessage} sendMessage={sendMessage} />
-      </div>
-    </div>
-  );
+    <BrowserRouter>
+      <Routes>
+        <Route exact path='/' element={<RoomListPage rooms={rooms} />} />
+        <Route exact path='/room/:id' element={<ChatPage user={user} />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App;
